@@ -8,11 +8,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - uses: icepuma/rust-action@master
+      - uses: icepuma/rust-action@1.56.1
         with:
           args: cargo clippy -- -Dwarnings && cargo test
       - name: Build release
-        uses: icepuma/rust-action@master
+        uses: icepuma/rust-action@1.56.1
         with:
           args: cargo build --release
       - name: Setup deb folder structure
