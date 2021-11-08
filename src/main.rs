@@ -69,24 +69,14 @@ async fn run_socket(socket_path: &str, r: Config) -> Result<(), KeylometerError>
     let path = Path::new(socket_path);
     if tokio::fs::remove_file(path).await.is_ok() { tracing::info!("Removed old socket") }
 
-    let middlewares = ServiceBuilder::new()
-        .layer(RequireAuthorizationLayer::bearer(r.key.as_str()));
-
     let config = Arc::new(r);
 
     let app = Router::new().route("/", get(|| async { "Hello, World!" })).route("/keys", post(fetch_keys))
         .layer(TraceLayer::new_for_http())
         .layer(AddExtensionLayer::new(config.clone()));
-    let app_http = Router::new().layer(middlewares).route("/", get(|| async { "Hello, World!" })).route("/keys", post(fetch_keys))
-        .layer(TraceLayer::new_for_http())
-        .layer(AddExtensionLayer::new(config));
 
 
-    let (a, b) = tokio::join!(axum::Server::bind_unix(path)?
-        .serve(app.into_make_service()), axum::Server::bind(&"0.0.0.0:3000".parse()?).serve(app_http.into_make_service()));
-    a?;
-    b?;
-
+    axum::Server::bind_unix(path)?.serve(app.into_make_service()).await?;
     Ok(())
 }
 
@@ -183,21 +173,8 @@ async fn main() -> Result<(), KeylometerError> {
     if daemon {
         tracing::info!("Running daemon on {}!", socket_path);
         let conf = matches.value_of("config").expect("Config is missing?");
-        let f = std::fs::File::open(conf)?;
-        let perms = f.metadata()?.permissions();
         let r = std::fs::read(conf).expect("Could not read config file!");
-        let mut r: Config = serde_yaml::from_slice(r.borrow())?;
-        if perms.mode() & 0o177 != 0 {
-            tracing::warn!("Permissions for {} are too loose, they are set to {:o}.", conf, perms.mode() & 777);
-            tracing::warn!("Set them to 600 to enable remote updates!");
-            r.allow_update = false;
-        }
-
-
-        if r.allow_update {
-            tracing::warn!("Autoupdate is enabled!")
-        }
-
+        let r: Config = serde_yaml::from_slice(r.borrow())?;
         return run_socket(socket_path, r).await;
     } else {
         let client = hyper::Client::unix();
