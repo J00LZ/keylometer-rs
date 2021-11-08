@@ -25,7 +25,7 @@ jobs:
           package: keylometer
           package_root: .debpkg
           maintainer: svsticky
-          version: ${{ github.ref }} # refs/tags/v*.*.*
+          version: v0.0.1
           arch: 'amd64'
           depends: 'libc6 (>= 2.2.1)'
           desc: 'harde vo voor keylometer-rs'
