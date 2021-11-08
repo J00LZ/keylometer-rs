@@ -1,4 +1,4 @@
-name: Rust Example
+name: Run tests
 
 on: [push]
 
@@ -11,3 +11,21 @@ jobs:
       - uses: icepuma/rust-action@master
         with:
           args: cargo clippy -- -Dwarnings && cargo test
+      - name: Build release
+        uses: icepuma/rust-action@master
+        with:
+          args: cargo build --release
+      - name: Setup deb folder structure
+        run: |
+          mkdir -p .debpkg/usr/bin
+          mkdir -p .debpkg/etc/keylometer
+          cp ./target/release/keylometer .debpkg/usr/bin/keylometer
+      - uses: jiro4989/build-deb-action@v2
+        with:
+          package: keylometer
+          package_root: .debpkg
+          maintainer: svsticky
+          version: ${{ github.ref }} # refs/tags/v*.*.*
+          arch: 'amd64'
+          depends: 'libc6 (>= 2.2.1)'
+          desc: 'harde vo voor keylometer-rs'

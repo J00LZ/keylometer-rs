@@ -25,12 +25,7 @@ use tower_http::trace::TraceLayer;
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Clone, Debug)]
 struct Config {
-    key: String,
     users: HashMap<String, Vec<String>>,
-    #[serde(default)]
-    allow_update: bool,
-    #[serde(default)]
-    pgp_public_key: String,
 }
 
 pub type HmacSha256 = Hmac<Sha256>;
