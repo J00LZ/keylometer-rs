@@ -37,7 +37,7 @@ pub type HmacSha256 = Hmac<Sha256>;
 
 async fn fetch_keys(Json(payload): Json<String>, cfg: axum::extract::Extension<Arc<Config>>) -> Result<Json<Vec<String>>, KeylometerError> {
     let k = do_keys(payload, cfg).await?;
-    return Ok(Json::from(k));
+    Ok(Json::from(k))
 }
 
 async fn do_keys(username: String, cfg: Extension<Arc<Config>>) -> Result<Vec<String>, KeylometerError> {
@@ -72,10 +72,7 @@ async fn do_keys(username: String, cfg: Extension<Arc<Config>>) -> Result<Vec<St
 
 async fn run_socket(socket_path: &str, r: Config) -> Result<(), KeylometerError> {
     let path = Path::new(socket_path);
-    match tokio::fs::remove_file(path).await {
-        Ok(_) => tracing::info!("Removed old socket"),
-        Err(_) => {}
-    }
+    if tokio::fs::remove_file(path).await.is_ok() { tracing::info!("Removed old socket") }
 
     let middlewares = ServiceBuilder::new()
         .layer(RequireAuthorizationLayer::bearer(r.key.as_str()));
