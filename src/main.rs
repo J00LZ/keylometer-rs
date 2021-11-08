@@ -1,6 +1,5 @@
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::sync::Arc;
 
@@ -19,8 +18,6 @@ use serde::{de, Deserialize, ser, Serialize};
 use sha2::Sha256;
 use thiserror::Error;
 use tokio::io;
-use tower::ServiceBuilder;
-use tower_http::auth::RequireAuthorizationLayer;
 use tower_http::trace::TraceLayer;
 
 #[derive(Serialize, Deserialize, Eq, PartialEq, Clone, Debug)]
